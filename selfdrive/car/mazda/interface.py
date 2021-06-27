@@ -20,10 +20,11 @@ class CarInterface(CarInterfaceBase):
 
     ret.carName = "mazda"
     ret.safetyModel = car.CarParams.SafetyModel.mazda
+    #ret.dashcamOnly = candidate in STEER_LOCK_CAR
+
     ret.radarOffCan = True
 
     ret.communityFeature = True
-    ret.dashcamOnly = True
 
     ret.steerActuatorDelay = 0.1
     ret.steerRateCost = 1.0
