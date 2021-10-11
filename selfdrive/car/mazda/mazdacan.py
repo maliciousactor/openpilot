@@ -59,6 +59,14 @@ def create_steering_control(packer, car_fingerprint, frame, apply_steer, lkas):
   return packer.make_can_msg("CAM_LKAS", 0, values)
 
 
+def create_steer_rate(packer, car_fingerprint, msg):
+  if car_fingerprint in GEN1:
+    values = msg
+    values["HANDS_OFF_5_SECONDS"] = 0
+
+  return packer.make_can_msg("STEER_RATE", 2, values)
+
+
 def create_button_cmd(packer, car_fingerprint, button):
 
   if button == Buttons.CANCEL:
