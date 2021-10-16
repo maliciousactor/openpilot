@@ -90,13 +90,7 @@ class CarState(CarStateBase):
 
     self.acc_active_last = ret.cruiseState.enabled
 
-    # update the message only if we don't have hands off or block lkas signal
-    if self.got_steer_rate_msg:
-      if cp.vl["STEER_RATE"]["HANDS_OFF_5_SECONDS"] == 0:
-        self.steer_rate_msg = cp.vl["STEER_RATE"]
-    else:
-      self.steer_rate_msg = cp.vl["STEER_RATE"]
-      self.got_steer_rate_msg = True
+    self.steer_rate_msg = cp.vl["STEER_RATE"]
 
     self.cam_lkas = cp_cam.vl["CAM_LKAS"]
     ret.steerError = cp_cam.vl["CAM_LKAS"]["ERR_BIT_1"] == 1

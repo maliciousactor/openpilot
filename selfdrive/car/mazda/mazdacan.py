@@ -62,7 +62,9 @@ def create_steering_control(packer, car_fingerprint, frame, apply_steer, lkas):
 def create_steer_rate(packer, car_fingerprint, msg):
   if car_fingerprint in GEN1:
     values = msg
-    values["HANDS_OFF_5_SECONDS"] = 0
+    if values["HANDS_OFF_5_SECONDS"] == 1:
+      values["HANDS_OFF_5_SECONDS"] = 0
+      values["CHKSUM"] = values["CHKSUM"] + 2
 
   return packer.make_can_msg("STEER_RATE", 2, values)
 
