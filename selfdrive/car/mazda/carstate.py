@@ -3,7 +3,7 @@ from selfdrive.config import Conversions as CV
 from opendbc.can.can_define import CANDefine
 from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import CarStateBase
-from selfdrive.car.mazda.values import DBC, LKAS_LIMITS, GEN1
+from selfdrive.car.mazda.values import DBC, LKAS_LIMITS, GEN1, CAR
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -85,7 +85,11 @@ class CarState(CarStateBase):
     # it should be enabled (steer lockout). Don't warn until we actually get lkas active
     # and lose it again, i.e, after initial lkas activation
 
-    ret.steerWarning = self.lkas_allowed_speed and lkas_blocked
+    if self.CP.carFingerprint == CAR.CX9_2021:
+      ret.steerWarning = False
+    else:
+      # On if no driver torque the last 5 seconds
+      ret.steerWarning = cp.vl["STEER_RATE"]["HANDS_OFF_5_SECONDS"] == 1
 
     self.acc_active_last = ret.cruiseState.enabled
 
