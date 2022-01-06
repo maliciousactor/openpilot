@@ -3,7 +3,7 @@ from selfdrive.config import Conversions as CV
 from opendbc.can.can_define import CANDefine
 from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import CarStateBase
-from selfdrive.car.mazda.values import DBC, LKAS_LIMITS, GEN1, CAR
+from selfdrive.car.mazda.values import DBC, LKAS_LIMITS, GEN1, GEN2, CAR
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -30,9 +30,30 @@ class CarState(CarStateBase):
     ret.vEgoRaw = (ret.wheelSpeeds.fl + ret.wheelSpeeds.fr + ret.wheelSpeeds.rl + ret.wheelSpeeds.rr) / 4.
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
 
-    # Match panda speed reading
-    speed_kph = cp.vl["ENGINE_DATA"]["SPEED"]
-    ret.standstill = speed_kph < .1
+    ret.leftBlinker, ret.rightBlinker = self.update_blinker_from_lamp(40, cp.vl["BLINK_INFO"]["LEFT_BLINK"] == 1,
+                                                                      cp.vl["BLINK_INFO"]["RIGHT_BLINK"] == 1)
+    ret.standstill = ret.vEgoRaw < 0.001
+
+    ret.steeringAngleDeg = cp.vl["STEER"]["STEER_ANGLE"]
+    ret.steeringTorque = cp.vl["STEER_TORQUE"]["STEER_TORQUE_SENSOR"]
+    ret.steeringTorqueEps = cp.vl["STEER_TORQUE"]["STEER_TORQUE_MOTOR"]
+    ret.steeringRateDeg = cp.vl["STEER_RATE"]["STEER_ANGLE_RATE"]
+    ret.steeringPressed = abs(ret.steeringTorque) > LKAS_LIMITS.STEER_THRESHOLD
+
+    if self.CP.carFingerprint == CAR.MAZDA3_2019:
+      ret.seatbeltUnlatched = False
+      ret.doorOpen = False
+      ret.brakePressed = False
+      ret.brake = .1
+      ret.gas = 0
+      ret.gasPressed = ret.gas > 0
+      ret.gearShifter = 4
+      ret.steerError = False
+      ret.SteerWarning = False
+      ret.cruiseState.available = True
+      ret.cruiseState.enabled = False
+      ret.cruiseState.speed = ret.vEgo
+      return ret
 
     can_gear = int(cp.vl["GEAR"]["GEAR"])
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
@@ -40,15 +61,7 @@ class CarState(CarStateBase):
     ret.genericToggle = bool(cp.vl["BLINK_INFO"]["HIGH_BEAMS"])
     ret.leftBlindspot = cp.vl["BSM"]["LEFT_BS1"] == 1
     ret.rightBlindspot = cp.vl["BSM"]["RIGHT_BS1"] == 1
-    ret.leftBlinker, ret.rightBlinker = self.update_blinker_from_lamp(40, cp.vl["BLINK_INFO"]["LEFT_BLINK"] == 1,
-                                                                      cp.vl["BLINK_INFO"]["RIGHT_BLINK"] == 1)
 
-    ret.steeringAngleDeg = cp.vl["STEER"]["STEER_ANGLE"]
-    ret.steeringTorque = cp.vl["STEER_TORQUE"]["STEER_TORQUE_SENSOR"]
-    ret.steeringPressed = abs(ret.steeringTorque) > LKAS_LIMITS.STEER_THRESHOLD
-
-    ret.steeringTorqueEps = cp.vl["STEER_TORQUE"]["STEER_TORQUE_MOTOR"]
-    ret.steeringRateDeg = cp.vl["STEER_RATE"]["STEER_ANGLE_RATE"]
 
     # TODO: this should be from 0 - 1.
     ret.brakePressed = cp.vl["PEDALS"]["BRAKE_ON"] == 1
@@ -67,6 +80,7 @@ class CarState(CarStateBase):
 
     # LKAS is enabled at 52kph going up and disabled at 45kph going down
     # wait for LKAS_BLOCK signal to clear when going up since it lags behind the speed sometimes
+    speed_kph = cp.vl["ENGINE_DATA"]["SPEED"]
     if speed_kph > LKAS_LIMITS.ENABLE_SPEED and not lkas_blocked:
       self.lkas_allowed_speed = True
     elif speed_kph < LKAS_LIMITS.DISABLE_SPEED:
