@@ -225,6 +225,10 @@ void ignition_can_hook(CANPacket_t *to_push) {
       ignition_can = ((GET_BYTE(to_push, 0) >> 4) == 0xDU) ||
 	((GET_BYTE(to_push, 0) >> 4) == 0xCU);
     }
+    // Mazda New Gen (mazda3, CX-30, etc) exception
+    if ((addr == 0x1A) && (len == 8)) {
+      ignition_can = ((GET_BYTE(to_push, 6)) == 0x18U);
+    }
 
   }
 }
