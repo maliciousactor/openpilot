@@ -10,7 +10,8 @@ class CarState(CarStateBase):
     super().__init__(CP)
 
     can_define = CANDefine(DBC[CP.carFingerprint]["pt"])
-    self.shifter_values = can_define.dv["GEAR"]["GEAR"]
+    if CP.carFingerprint in GEN1:
+      self.shifter_values = can_define.dv["GEAR"]["GEAR"]
 
     self.crz_btns_counter = 0
     self.acc_active_last = False
@@ -49,7 +50,7 @@ class CarState(CarStateBase):
       ret.gasPressed = ret.gas > 0
       ret.gearShifter = 4
       ret.steerError = False
-      ret.SteerWarning = False
+      ret.steerWarning = False
       ret.cruiseState.available = True
       ret.cruiseState.enabled = False
       ret.cruiseState.speed = ret.vEgo
