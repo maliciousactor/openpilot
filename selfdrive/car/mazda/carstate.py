@@ -48,12 +48,15 @@ class CarState(CarStateBase):
       ret.brake = .1
       ret.gas = 0
       ret.gasPressed = ret.gas > 0
-      ret.gearShifter = 4
+      ret.gearShifter = 6
       ret.steerError = False
       ret.steerWarning = False
       ret.cruiseState.available = True
       ret.cruiseState.enabled = False
       ret.cruiseState.speed = ret.vEgo
+      self.cam_lkas = 1
+      self.cam_laneinfo = 1
+      self.crz_btns_counter = 1
       return ret
 
     can_gear = int(cp.vl["GEAR"]["GEAR"])

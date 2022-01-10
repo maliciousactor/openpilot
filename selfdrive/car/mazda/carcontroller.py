@@ -1,7 +1,7 @@
 from cereal import car
 from opendbc.can.packer import CANPacker
 from selfdrive.car.mazda import mazdacan
-from selfdrive.car.mazda.values import CarControllerParams, Buttons
+from selfdrive.car.mazda.values import CarControllerParams, Buttons, GEN1
 from selfdrive.car import apply_std_steer_torque_limits
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
@@ -54,9 +54,11 @@ class CarController():
       # TODO: find a way to silence audible warnings so we can add more hud alerts
       # steer_required = steer_required and CS.lkas_allowed_speed
       steer_required = CS.out.steerWarning
-      can_sends.append(mazdacan.create_alert_command(self.packer, CS.cam_laneinfo, ldw, steer_required))
+      if CS.CP.carFingerprint in GEN1:
+        can_sends.append(mazdacan.create_alert_command(self.packer, CS.cam_laneinfo, ldw, steer_required))
 
     # send steering command
-    can_sends.append(mazdacan.create_steering_control(self.packer, CS.CP.carFingerprint,
-                                                      frame, apply_steer, CS.cam_lkas))
+    if CS.CP.carFingerprint in GEN1:
+      can_sends.append(mazdacan.create_steering_control(self.packer, CS.CP.carFingerprint,
+                                                        frame, apply_steer, CS.cam_lkas))
     return can_sends
