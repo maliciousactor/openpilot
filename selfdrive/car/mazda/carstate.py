@@ -43,13 +43,15 @@ class CarState(CarStateBase):
     can_gear = int(cp.vl["GEAR"]["GEAR"])
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
 
+    # TODO: this should be from 0 - 1.
+    ret.gas = cp.vl["ENGINE_DATA"]["PEDAL_GAS"]
+    ret.gasPressed = ret.gas > 0
+
     if self.CP.carFingerprint == CAR.MAZDA3_2019:
       ret.seatbeltUnlatched = False
       ret.doorOpen = False
       ret.brakePressed = False
       ret.brake = .1
-      ret.gas = 0
-      ret.gasPressed = ret.gas > 0
       ret.steerError = False
       ret.steerWarning = False
       ret.cruiseState.available = True
@@ -74,9 +76,6 @@ class CarState(CarStateBase):
     ret.doorOpen = any([cp.vl["DOORS"]["FL"], cp.vl["DOORS"]["FR"],
                         cp.vl["DOORS"]["BL"], cp.vl["DOORS"]["BR"]])
 
-    # TODO: this should be from 0 - 1.
-    ret.gas = cp.vl["ENGINE_DATA"]["PEDAL_GAS"]
-    ret.gasPressed = ret.gas > 0
 
     # Either due to low speed or hands off
     lkas_blocked = cp.vl["STEER_RATE"]["LKAS_BLOCK"] == 1
@@ -139,10 +138,12 @@ class CarState(CarStateBase):
       ("RL", "WHEEL_SPEEDS", 0),
       ("RR", "WHEEL_SPEEDS", 0),
       ("GEAR", "GEAR", 0),
+      ("PEDAL_GAS", "ENGINE_DATA", 0),
     ]
 
     checks = [
       # sig_address, frequency
+      ("ENGINE_DATA", 100),
       ("BLINK_INFO", 10),
       ("STEER", 67),
       ("STEER_RATE", 83),
@@ -167,7 +168,6 @@ class CarState(CarStateBase):
         ("FR", "DOORS", 0),
         ("BL", "DOORS", 0),
         ("BR", "DOORS", 0),
-        ("PEDAL_GAS", "ENGINE_DATA", 0),
         ("SPEED", "ENGINE_DATA", 0),
         ("CTR", "CRZ_BTNS", 0),
         ("LEFT_BS1", "BSM", 0),
@@ -175,7 +175,6 @@ class CarState(CarStateBase):
       ]
 
       checks += [
-        ("ENGINE_DATA", 100),
         ("CRZ_CTRL", 50),
         ("CRZ_EVENTS", 50),
         ("CRZ_BTNS", 10),
