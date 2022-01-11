@@ -10,8 +10,7 @@ class CarState(CarStateBase):
     super().__init__(CP)
 
     can_define = CANDefine(DBC[CP.carFingerprint]["pt"])
-    if CP.carFingerprint in GEN1:
-      self.shifter_values = can_define.dv["GEAR"]["GEAR"]
+    self.shifter_values = can_define.dv["GEAR"]["GEAR"]
 
     self.crz_btns_counter = 0
     self.acc_active_last = False
@@ -41,6 +40,9 @@ class CarState(CarStateBase):
     ret.steeringRateDeg = cp.vl["STEER_RATE"]["STEER_ANGLE_RATE"]
     ret.steeringPressed = abs(ret.steeringTorque) > LKAS_LIMITS.STEER_THRESHOLD
 
+    can_gear = int(cp.vl["GEAR"]["GEAR"])
+    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
+
     if self.CP.carFingerprint == CAR.MAZDA3_2019:
       ret.seatbeltUnlatched = False
       ret.doorOpen = False
@@ -48,7 +50,6 @@ class CarState(CarStateBase):
       ret.brake = .1
       ret.gas = 0
       ret.gasPressed = ret.gas > 0
-      ret.gearShifter = 6
       ret.steerError = False
       ret.steerWarning = False
       ret.cruiseState.available = True
@@ -59,8 +60,6 @@ class CarState(CarStateBase):
       self.crz_btns_counter = 1
       return ret
 
-    can_gear = int(cp.vl["GEAR"]["GEAR"])
-    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
 
     ret.genericToggle = bool(cp.vl["BLINK_INFO"]["HIGH_BEAMS"])
     ret.leftBlindspot = cp.vl["BSM"]["LEFT_BS1"] == 1
@@ -139,6 +138,7 @@ class CarState(CarStateBase):
       ("FR", "WHEEL_SPEEDS", 0),
       ("RL", "WHEEL_SPEEDS", 0),
       ("RR", "WHEEL_SPEEDS", 0),
+      ("GEAR", "GEAR", 0),
     ]
 
     checks = [
@@ -148,6 +148,7 @@ class CarState(CarStateBase):
       ("STEER_RATE", 83),
       ("STEER_TORQUE", 83),
       ("WHEEL_SPEEDS", 100),
+      ("GEAR", 20),
     ]
 
     if CP.carFingerprint in GEN1:
@@ -161,7 +162,6 @@ class CarState(CarStateBase):
         ("STANDSTILL", "PEDALS", 0),
         ("BRAKE_ON", "PEDALS", 0),
         ("BRAKE_PRESSURE", "BRAKE", 0),
-        ("GEAR", "GEAR", 0),
         ("DRIVER_SEATBELT", "SEATBELT", 0),
         ("FL", "DOORS", 0),
         ("FR", "DOORS", 0),
@@ -183,7 +183,6 @@ class CarState(CarStateBase):
         ("BRAKE", 50),
         ("SEATBELT", 10),
         ("DOORS", 10),
-        ("GEAR", 20),
         ("BSM", 10),
       ]
 
