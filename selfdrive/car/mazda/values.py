@@ -8,7 +8,7 @@ Ecu = car.CarParams.Ecu
 # Steer torque limits
 
 class CarControllerParams:
-  STEER_MAX = 800                # theoretical max_steer 2047
+  STEER_MAX = 1200                # theoretical max_steer 2047
   STEER_DELTA_UP = 10             # torque increase per refresh
   STEER_DELTA_DOWN = 25           # torque decrease per refresh
   STEER_DRIVER_ALLOWANCE = 15     # allowed driver torque before start limiting
@@ -22,6 +22,7 @@ class CAR:
   MAZDA3 = "MAZDA 3"
   MAZDA6 = "MAZDA 6"
   CX9_2021 = "MAZDA CX-9 2021"   # No Steer Lockout
+  CX5_2022 = "MAZDA CX-5 2022"   # No Steer Lockout
 
 class LKAS_LIMITS:
   STEER_THRESHOLD = 15
@@ -267,7 +268,10 @@ DBC = {
 }
 
 # Gen 1 hardware: same CAN messages and same camera
-GEN1 = set([CAR.CX5, CAR.CX9, CAR.CX9_2021, CAR.MAZDA3, CAR.MAZDA6])
+GEN1 = set([CAR.CX5, CAR.CX9, CAR.CX9_2021, CAR.MAZDA3, CAR.MAZDA6, CAR.CX5_2022])
 
 # Cars with a steering lockout
 STEER_LOCKOUT_CAR = set([CAR.CX5, CAR.CX9, CAR.MAZDA3, CAR.MAZDA6])
+
+# Cars that don't steer below 28mph
+STEER_SPEED_LIMIT = set([CAR.CX5, CAR.CX9, CAR.MAZDA3, CAR.MAZDA6, CAR.CX9_2021])
